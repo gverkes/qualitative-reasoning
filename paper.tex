@@ -21,7 +21,27 @@
 \maketitle
 
 \section{Problem}
-	
+
+\begin{itemize}
+\item \textbf{Quantities:}
+\begin{itemize}
+\item Inflow (of water into the container) $\in [0, +]$
+\item Outflow (of water out of the container) $\in [0, +, Max]$
+\item Volume (of the water in the container) $\in [0, +, Max]$
+\end{itemize}
+
+\item \textbf{Dependencies:}
+
+\begin{itemize}
+\item I+(Inflow, Volume): the amount of inflow increases the volume
+\item I-(Outflow, Volume): the amount of outflow decreases the volume
+\item P+(Volume, Outflow): outflow changes are proportional to volume changes
+\item V(Volume(Max), Outflow(Max)): the outflow is at its highest value (Max), when the volume is at it highest value
+\item V(Volume(0), Outflow(0)): there is no outflow, when there is no volume
+\end{itemize}
+\end{itemize}
+
+
 \begin{figure}[H]
 \includegraphics[]{problem.png}
 \caption{Drawings of the causal model active for the system}
