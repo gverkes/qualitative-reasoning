@@ -8,6 +8,15 @@ class Problem:
         self.quantities = quantities
         self.fixed = fixed
 
+    def hash_state(self, state):
+        sorted_keys = [q.name for q in self.quantities]
+        result_hash = ''
+
+        for key in sorted_keys:
+            result_hash += key + str(state[key]) + '\n'
+
+        return result_hash
+
     def succ(self, state):
         new_states = [{}]
 
@@ -17,15 +26,23 @@ class Problem:
             quantity_new_states = []
             while new_states:
                 new_dict = new_states.pop(0)
-                for value in quantity.next_value(value, derivative):
+                for v in quantity.next_value(value, derivative):
                     value_new_dict = deepcopy(new_dict)
-                    value_new_dict[quantity.name] = [value, None]
+                    value_new_dict[quantity.name] = [v, None]
                     quantity_new_states.append(value_new_dict)
+                    # print(quantity_new_states)
             new_states = quantity_new_states
+            # print('NS: ' + str(new_states))
 
         # Value constraints, i.e. filtering out states not matching value constraints
+        vc_new_states = []
         for s in new_states:
-            new_states[:] = filterfalse(self.check_constraints, new_states)
+            if not self.check_constraints(s):
+                vc_new_states.append(s)
+        new_states = vc_new_states
+
+        # new_states = [new_states[1]]
+        # print(new_states)
 
         # Influence propogations, i.e. computing new derivatives based on influences
         for quantity in self.quantities:
@@ -54,12 +71,21 @@ class Problem:
 
             if sign != 0:
                 if infl_positive:
-                    new_der.add(min(1, max(-1, old_state[quantity.name][1] + sign)))
-                else:
-                    new_der.add(min(1, max(-1, old_state[quantity.name][1] - sign)))
+                    new_der.add(sign)
+                    # new_der.add(min(1, max(-1, old_state[quantity.name][1] + sign)))
+                else: #lif not old_state[quantity.name][1] == sign:
+                    new_der.add(-sign)
+                    # new_der.add(min(1, max(-1, old_state[quantity.name][1] - sign)))
+            #     print(new_der)
+            # else:
+            #     new_der.add(old_state[quantity.name][1])
+            #     print(new_der)
 
         if -1 in new_der and 1 in new_der:
             new_der.add(0)
+        elif not new_der:
+            new_der.add(0)
+        new_der = new_der & set([old_state[quantity.name][1], min(1, max(-1, old_state[quantity.name][1] + 1)), min(1, max(-1, old_state[quantity.name][1] - 1))])
 
         return new_der
 
@@ -78,8 +104,15 @@ class Problem:
                 new_dict = new_states.pop(0)
                 for deri in visited_quantities[quantity.name]:
                     deri_new_dict = deepcopy(new_dict)
-                    deri_new_dict[quantity.name][1] = deri
-                    quantity_new_states.append(deri_new_dict)
+                    value_idx = quantity.value2index(deri_new_dict[quantity.name][0])
+                    sign = quantity.signs[value_idx]
+                    interval = quantity.intervals[value_idx]
+                    # print(deri_new_dict[quantity.name][0] != old_state[quantity.name][0])
+                    # print(interval)
+                    # print(deri != old_state[quantity.name][1])
+                    if (not (deri < 0 and sign == 0) and not (deri_new_dict[quantity.name][0] != old_state[quantity.name][0] and interval and deri != old_state[quantity.name][1])):
+                        deri_new_dict[quantity.name][1] = deri
+                        quantity_new_states.append(deri_new_dict)
             new_states = quantity_new_states
 
         return new_states
@@ -119,7 +152,7 @@ class Problem:
     def check_constraints(self, state):
         for quantity in self.quantities:
             for other_quantity, own_val, other_val in quantity.value_constraints:
-                if state[quantity.name] == own_val and state[other_quantity.name] != other_val:
+                if state[quantity.name][0] == own_val and state[other_quantity.name][0] != other_val:
                     return True
 
         return False
