@@ -30,6 +30,7 @@ class Search:
             print(depth * '\t' + str(result))
             Search.recursive(problem, result, depth+1, visited_states)
 
+    @staticmethod
     def iterative(problem, state):
         result = {problem.hash_state(state): {'state': state, 'children': set([])}}
 
@@ -61,7 +62,7 @@ if __name__ == "__main__":
     tank.value_constraint(outflow, "Zero", "Zero")
     outflow.value_constraint(tank, "Zero", "Zero")
 
-    prob1 = Problem([inflow, tank, outflow], fixed=True)
+    prob1 = Problem([inflow, tank, outflow], fixed=True,logfile=True)
 
     start_state = {"Inflow": ["Zero", 1], "Tank": ["Zero", 0], "Outflow": ["Zero", 0]}
     # start_state = {"Inflow": ["Plus", 1], "Tank": ["Plus", -1], "Outflow": ["Plus", -1]}
@@ -70,7 +71,7 @@ if __name__ == "__main__":
     # for k, v in Search.iterative(prob1, start_state).items():
     #     print(v['state'])
     print(len(Search.iterative(prob1, start_state)))
-    Plot.draw(Search.iterative(prob1, start_state), 'result.png')
+    #Plot.draw(Search.iterative(prob1, start_state), 'result.png')
     # results = prob1.succ({"Inflow": ("Zero", 1), "Tank": ("Zero", 0), "Outflow": ("Zero", 0)})
     # for res in results:
     #     print(res)
