@@ -33,18 +33,28 @@ class Search:
     @staticmethod
     def iterative(problem, state):
         result = {problem.hash_state(state): {'state': state, 'children': set([])}}
+        if problem.logfile!= None:
+            print("The program starts to explore from the initial state "+problem.state2printstring(state)+" iteratively expanding the graph of possible beahaviours")
 
         processing_list = [state]
         while processing_list:
             processing_state = processing_list.pop(0)
+            if problem.logfile!= None:
+                print("Popping the state "+problem.state2printstring(state)+" from the list of the states to explore")
             succesors = problem.succ(processing_state)
             for succ in succesors:
                 hashed_state = problem.hash_state(succ)
                 result[problem.hash_state(processing_state)]['children'].add(hashed_state)
                 if hashed_state not in result:
+                    if problem.logfile!= None:
+                        print("Adding the state "+problem.state2printstring(state)+" to the list of the states to explore") 
                     result[hashed_state] = {'state': succ, 'children': set([])}
                     processing_list.append(succ)
-
+                elif problem.logfile!= None:
+                    print("The state "+problem.state2printstring(state)+" was already explored")
+                    
+        if problem.logfile!= None:
+                        print("The list of the states to explore is empty: terminating the program")
         return result
 
 
@@ -62,7 +72,7 @@ if __name__ == "__main__":
     tank.value_constraint(outflow, "Zero", "Zero")
     outflow.value_constraint(tank, "Zero", "Zero")
 
-    prob1 = Problem([inflow, tank, outflow], fixed=True,logfile=True)
+    prob1 = Problem([inflow, tank, outflow], fixed=False,logfile=True)
 
     start_state = {"Inflow": ["Zero", 1], "Tank": ["Zero", 0], "Outflow": ["Zero", 0]}
     # start_state = {"Inflow": ["Plus", 1], "Tank": ["Plus", -1], "Outflow": ["Plus", -1]}
