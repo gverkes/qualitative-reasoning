@@ -3,6 +3,27 @@ from copy import deepcopy, copy
 
 class Problem:
 
+    @staticmethod
+    def dev2str(devv):
+        if devv is None:
+            return '#'
+        elif hasattr(devv, '__iter__'):
+            r = []
+            for dev in devv:
+                if dev > 0:
+                    r.append('+')
+                elif dev < 0:
+                    r.append('-')
+                else:
+                    r.append('0')
+            return r
+        else:
+            if devv > 0:
+                return '+'
+            elif devv < 0:
+                return '-'
+            else:
+                return '0'
 
     def __init__(self, quantities, fixed=False,logfile=None):
         self.quantities = quantities
@@ -11,16 +32,21 @@ class Problem:
 
     def hash_state(self, state):
         sorted_keys = [q.name for q in self.quantities]
-        result_hash = ''
-        
+        result_hash = ""
+
         for key in sorted_keys:
-            result_hash += key + str(state[key]) + '\n'
+            result_hash += str(key) + ": " + state[key][0] + ", " + Problem.dev2str(state[key][1]) + "\n"
+
+            """for q in state[key][:-1]:
+                result_hash += str(q) + ", "
+            result_hash += str(state[key][-1]) + '\n'"""
 
         return result_hash
+
     def state2printstring(self,state):
         s=self.hash_state(state)
         return "("+s.replace("\n", " ").replace(", None","")+")"
-        
+
     def succ(self, state):
         new_states = [{}]
 
@@ -39,21 +65,21 @@ class Problem:
                     # print(quantity_new_states)
             new_states = quantity_new_states
             # print('NS: ' + str(new_states))
-            
-                    
-        
+
+
+
         if self.logfile!=None:
             print("\t\t for each quantity we determine the possible values which it can trasit in (using its actual value and its derivative):")
         if self.logfile!=None:
-            if new_states:   
-                
+            if new_states:
+
                 for quantity in self.quantities:
                     value, derivative = state[quantity.name]
                     print("\t\t\t  "+quantity.name+" : "+str(quantity.next_value(value, derivative)).replace("["," ").replace("]"," "))
             else:
                 print("\t\t One of the quantities has no successors, thus the state is a terminal state\n")
-        
-    
+
+
 
         # Value constraints, i.e. filtering out states not matching value constraints
         if self.logfile!=None:
@@ -63,18 +89,14 @@ class Problem:
             if not self.check_constraints(s):
                 vc_new_states.append(s)
         new_states = vc_new_states
+
         if self.logfile!=None:
-            if not new_states:   
+            if not new_states:
                 print("\t\t After imposing value constraints one of the quntities has no successors, thus the state is a terminal state\n")
             else:
                 print("\t\t Now for each possible combination of values we propagate the constraints to determine the possible values the derivative can assume\n")
                 print("\t\t First for each quantity we propagate influences")
-                
-                
-        
-        # new_states = [new_states[1]]
-        # print(new_states)
-        
+
         # Influence propogations, i.e. computing new derivatives based on influences
         for quantity in self.quantities:
             if quantity.hasInfluences():
@@ -84,27 +106,34 @@ class Problem:
                 while new_states:
                     new_dict = new_states.pop(0)
                     if self.logfile!=None :
-                        print("\t\t\t\t In the state "+self.state2printstring(new_dict)+" the quantity "+quantity.name+" can have derivative "+str([deri for deri in self.propagate_influences(quantity, state, new_dict)]) )
-                        
+                        pp = Problem.dev2str([deri for deri in self.propagate_influences(quantity, state, new_dict)])
+                        if not pp:
+                            print("\t\t\t\t In the partial state "+self.state2printstring(new_dict)+" the quantity "+quantity.name+" can have derivatives "+str(pp))
+                        else:
+                            print("\t\t\t\t In the partial state " + self.state2printstring(new_dict) + " the quantity " + quantity.name + " cannot have any derivative")
+
                     for deri in self.propagate_influences(quantity, state, new_dict):
                         value_new_dict = deepcopy(new_dict)
                         value_new_dict[quantity.name][1] = deri
                         quantity_new_states.append(value_new_dict)
                 new_states = quantity_new_states
 
+
         final_new_states = []
         if self.logfile!=None and new_states:
                     print("\n\t\t Now for each state we propagate proportionals, we resolve proportionality chains using recursive calls")
         for new_state in new_states:
             final_new_states += self.propagate_proportionals(state, new_state)
-        
+
         if self.logfile!=None:
-            print("---> The state"+self.state2printstring(state)+" can transition to "+str([self.state2printstring(i) for i in  final_new_states]))  
+            print("---> The state"+self.state2printstring(state)+" can transition to "+str([self.state2printstring(i) for i in  final_new_states]))
         return final_new_states
 
     def propagate_influences(self, quantity, old_state, new_state):
         new_der = set()
+        change = False
         for infl_quantity, infl_positive in quantity.influences:
+            _, der = old_state[infl_quantity.name]
             value, _ = new_state[infl_quantity.name]
             value_idx = infl_quantity.value2index(value)
             sign = infl_quantity.signs[value_idx]
@@ -112,25 +141,27 @@ class Problem:
             if sign != 0:
                 if infl_positive:
                     new_der.add(sign)
-                    # new_der.add(min(1, max(-1, old_state[quantity.name][1] + sign)))
-                else: #lif not old_state[quantity.name][1] == sign:
+                else:
                     new_der.add(-sign)
-                    # new_der.add(min(1, max(-1, old_state[quantity.name][1] - sign)))
-            #     print(new_der)
-            # else:
-            #     new_der.add(old_state[quantity.name][1])
-            #     print(new_der)
+            if (der != 0):
+                change = True
 
-        if -1 in new_der and 1 in new_der:
+        if not change:
+            new_der = set([old_state[quantity.name][1]])
+        elif -1 in new_der and 1 in new_der:
             new_der.add(0)
         elif not new_der:
             new_der.add(0)
+
+        # print(new_der)
+        # print(old_state[quantity.name][1])
+
         new_der = new_der & set([old_state[quantity.name][1], min(1, max(-1, old_state[quantity.name][1] + 1)), min(1, max(-1, old_state[quantity.name][1] - 1))])
 
         return new_der
 
     def propagate_proportionals(self, old_state, new_state):
-        
+
         if self.logfile!=None:
                 print("\t\t\t Processing partial state "+self.state2printstring(new_state))
 
@@ -139,29 +170,31 @@ class Problem:
         visited_quantities = {}
         for quantity in self.quantities:
             derivatives = set()
-            
+
 
             if quantity.name not in visited_quantities:
                 visited_quantities, derivatives = self.propagate_proportional(quantity, visited_quantities, derivatives, old_state, new_state)
-                   
+
             quantity_new_states = []
             while new_states:
                 new_dict = new_states.pop(0)
                 for deri in visited_quantities[quantity.name]:
                     deri_new_dict = deepcopy(new_dict)
-                    value_idx = quantity.value2index(deri_new_dict[quantity.name][0])
-                    sign = quantity.signs[value_idx]
+                    new_value = deri_new_dict[quantity.name][0]
+                    value_idx = quantity.value2index(new_value)
                     interval = quantity.intervals[value_idx]
                     # print(deri_new_dict[quantity.name][0] != old_state[quantity.name][0])
                     # print(interval)
                     # print(deri != old_state[quantity.name][1])
-                    if (not (deri < 0 and sign == 0) and not (deri_new_dict[quantity.name][0] != old_state[quantity.name][0] and interval and deri != old_state[quantity.name][1])):
+                    if (not ((deri < 0 and quantity.isMin(new_value)) or (deri > 0 and quantity.isMax(new_value))) \
+                            and not (deri_new_dict[quantity.name][0] != old_state[quantity.name][0] \
+                                     and interval and deri != old_state[quantity.name][1])):
                         deri_new_dict[quantity.name][1] = deri
                         quantity_new_states.append(deri_new_dict)
                     elif (deri_new_dict[quantity.name][0] != old_state[quantity.name][0] and interval and deri != old_state[quantity.name][1]) and self.logfile!=None:
                         print("\t\t\t\t discarding partial state "+self.state2printstring(deri_new_dict)+" because it violates continuity constraints")
             new_states = quantity_new_states
-            
+
         if self.logfile!=None:
             for i in new_states:
                 print("\t\t\t\t adding "+self.state2printstring(i)+" to the list of future states")
@@ -181,7 +214,7 @@ class Problem:
                 visited_quantities[quantity.name] = set({der})
                 derivatives = set({der})
             else:
-                
+
                 visited_quantities[quantity.name] = set({der, min(1, der+1), max(-1, der-1)})
                 derivatives = set({der, min(1, der+1), max(-1, der-1)})
                 if self.logfile!=None :
@@ -197,7 +230,7 @@ class Problem:
                 print("\t\t\t\t\t the quantity receives the following proportionalities: " + str([(q[0].name, '+' if q[1] else '-') for q in quantity.proportionals]))
             _, der = new_state[quantity.name]
             if der is not None:
-                
+
                 derivatives.add(der)
                 visited_quantities[quantity.name].add(der)
             if self.logfile!=None :
@@ -207,14 +240,14 @@ class Problem:
                 if prop_quantity.name not in visited_quantities:
                     if self.logfile!=None :
                         print("\t\t\t\t\t the derivative of quantity : "+ prop_quantity.name+" is still unassigned.... performing recursive call")
-                    visited_quantities, derivatives = self.propagate_proportional(prop_quantity, visited_quantities, derivatives, state)
+                    visited_quantities, derivatives = self.propagate_proportional(prop_quantity, visited_quantities, derivatives, old_state, new_state)
 
                 derivatives |= set([(1 if prop_positive else -1)*i for i in visited_quantities[prop_quantity.name]])
                 if -1 in derivatives and 1 in derivatives:
                     derivatives.add(0)
             if self.logfile!=None :
                 print("\t\t\t\t\t propagating proportionality: "+ quantity.name+" can take derivatives : "+str(list(derivatives)))
-                
+
 
             visited_quantities[quantity.name] = copy(derivatives)
 
@@ -229,5 +262,5 @@ class Problem:
                     return True
         if self.logfile!=None:
             print("\t\t\t In "+self.state2printstring(state)+" all the values respect the value constraints")
-            
+
         return False
