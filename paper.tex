@@ -112,6 +112,13 @@ The next step in the algorithm is to determine new derivatives based on the infl
 \caption{}
 \label{alg:propogating_influences}
 \end{algorithm}
+\section{Modelling choices and possible extensions}
+The algorithm implemented is very general and allows to model an arbitrarily complex model. Despite that we decided not to include certain features in our program.\newline
+First of all we chose not to implement all the inequality constraints. The main reason for not implementing this, is that all rules have to be coded for a general problem and thus coding them takes a discrete amount of time. Therefore we decided to implement only the most important ones, Such as the continuity constraints.\newline
+We then decided not to use higher order derivatives. However because of the generality of the algorithm, we cold easily have implemented them adding for each quantity $Q$ an another quantity $\partial Q$ and imposing constraints.
+\newline 
+Finally we only implemented random and static derivative for the inflow, but we could have easily implemented others exogenous behaviours.
+ 
 
 \section{State-graph}
 The algorithm from the previous section generates a list of states which are unique values of Inflow, Tank and Ouflow and their first derivatives. Each state has a number of reachable states after an amount of time or a change in the state from an external influence. For this problem the only external influence we allow is changing the derivative of the Inflow (which is opening and closing the tap).
