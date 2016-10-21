@@ -45,7 +45,7 @@ class Problem:
 
     def state2printstring(self,state):
         s=self.hash_state(state)
-        return "("+s.replace("\n", " ").replace(", None","")+")"
+        return "("+s.replace("\n", "; ").replace(", None","")+")"
 
     def succ(self, state):
         new_states = [{}]
@@ -105,14 +105,15 @@ class Problem:
                 quantity_new_states = []
                 while new_states:
                     new_dict = new_states.pop(0)
+                    xx = self.propagate_influences(quantity, state, new_dict)
                     if self.logfile!=None :
-                        pp = Problem.dev2str([deri for deri in self.propagate_influences(quantity, state, new_dict)])
-                        if not pp:
+                        pp = Problem.dev2str([deri for deri in xx])
+                        if pp:
                             print("\t\t\t\t In the partial state "+self.state2printstring(new_dict)+" the quantity "+quantity.name+" can have derivatives "+str(pp))
                         else:
                             print("\t\t\t\t In the partial state " + self.state2printstring(new_dict) + " the quantity " + quantity.name + " cannot have any derivative")
 
-                    for deri in self.propagate_influences(quantity, state, new_dict):
+                    for deri in xx:
                         value_new_dict = deepcopy(new_dict)
                         value_new_dict[quantity.name][1] = deri
                         quantity_new_states.append(value_new_dict)
@@ -121,12 +122,12 @@ class Problem:
 
         final_new_states = []
         if self.logfile!=None and new_states:
-                    print("\n\t\t Now for each state we propagate proportionals, we resolve proportionality chains using recursive calls")
+            print("\n\t\t Now for each state we propagate proportionals, we resolve proportionality chains using recursive calls")
         for new_state in new_states:
             final_new_states += self.propagate_proportionals(state, new_state)
 
         if self.logfile!=None:
-            print("---> The state"+self.state2printstring(state)+" can transition to "+str([self.state2printstring(i) for i in  final_new_states]))
+            print("---> The state"+self.state2printstring(state)+" can transit to "+str([self.state2printstring(i) for i in  final_new_states]))
         return final_new_states
 
     def propagate_influences(self, quantity, old_state, new_state):
@@ -153,10 +154,13 @@ class Problem:
         elif not new_der:
             new_der.add(0)
 
+        print("\t\t\t\t Possible values for the derivatives are: " + str(Problem.dev2str(new_der)))
+
         # print(new_der)
         # print(old_state[quantity.name][1])
 
         new_der = new_der & set([old_state[quantity.name][1], min(1, max(-1, old_state[quantity.name][1] + 1)), min(1, max(-1, old_state[quantity.name][1] - 1))])
+        print("\t\t\t\t Possible values for the derivatives with continuity constraint are: " + str(Problem.dev2str(new_der)))
 
         return new_der
 
@@ -192,6 +196,7 @@ class Problem:
                         deri_new_dict[quantity.name][1] = deri
                         quantity_new_states.append(deri_new_dict)
                     elif (deri_new_dict[quantity.name][0] != old_state[quantity.name][0] and interval and deri != old_state[quantity.name][1]) and self.logfile!=None:
+                        deri_new_dict[quantity.name][1] = deri
                         print("\t\t\t\t discarding partial state "+self.state2printstring(deri_new_dict)+" because it violates continuity constraints")
             new_states = quantity_new_states
 
@@ -206,7 +211,7 @@ class Problem:
         visited_quantities[quantity.name] = set()
         if not quantity.hasProportionals() and not quantity.hasInfluences():
             if self.logfile!=None :
-                print("\t\t\t\t\t the quantity receives no influence or proportionality thus we can determine its derivative arbitrarily")
+                print("\t\t\t\t\t the quantity receives no influence or proportionality thus we can arbitrarily determine its derivative")
             _, der = old_state[quantity.name]
             if self.fixed:
                 if self.logfile!=None :
@@ -218,7 +223,7 @@ class Problem:
                 visited_quantities[quantity.name] = set({der, min(1, der+1), max(-1, der-1)})
                 derivatives = set({der, min(1, der+1), max(-1, der-1)})
                 if self.logfile!=None :
-                    print("\t\t\t\t\t the settings are derivative='random transition' thus the derivative of "+quantity.name+" takes all the possible value which respect continuity constraints: "+str(derivatives))
+                    print("\t\t\t\t\t the settings are derivative='random transition' thus the derivative of "+quantity.name+" will have all the possible values which respect continuity constraints: " + str(Problem.dev2str(derivatives)))
         elif not quantity.hasProportionals():
             if self.logfile!=None :
                     print("\t\t\t\t\t the quantity receives only influences thus its derivatives are already assigned ")
@@ -246,7 +251,7 @@ class Problem:
                 if -1 in derivatives and 1 in derivatives:
                     derivatives.add(0)
             if self.logfile!=None :
-                print("\t\t\t\t\t propagating proportionality: "+ quantity.name+" can take derivatives : "+str(list(derivatives)))
+                print("\t\t\t\t\t propagating proportionality: "+ quantity.name+" can have derivatives : "+str(Problem.dev2str(derivatives)))
 
 
             visited_quantities[quantity.name] = copy(derivatives)

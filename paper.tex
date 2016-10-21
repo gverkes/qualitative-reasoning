@@ -70,7 +70,7 @@ The goal of the algorithm is to construct a state graph based for a specific mod
         add s as child to processing\_state
     }
 }
-\caption{Computing the state-graph based on given an starting state. It starts with a given starting state in the processing list, then it computes all the successors of this state and adds all the succesors as children to state that is being processed, as well as adding these succesors to the processing list, but only if a successor was not already processed.}
+\caption{Computing the state-graph based on given an starting state. It starts with a given starting state in the processing list, then it computes all the successors of this state and adds all the successors as children to state that is being processed, as well as adding these successors to the processing list, but only if a successor was not already processed.}
 \label{alg:computing_state_graph}
 \end{algorithm}
 
@@ -88,16 +88,29 @@ new\_states = [ empty\_state ]
             }
         }
         }
-\caption{Propagate over all quantities and modify value based on the derivative}
+\caption{Propagate over all quantities and modify value based on the derivative. This is done by looping over all quantities in the model and computing all the possible values for a next state based on its current value and its derivative. For each possible next value we create a new state, thus possibly creating multiple states. Because, we can have new states created by value splits of previous quantities, we need to create new states for each state that was created previously}
 \label{alg:propogating_values}
 \end{algorithm}
 
-After changing the values according to the derivatives for each quantity in the model, we start propagating over all quantities to determine new derivatives based on the influences.
+After computing all the possible successive states only with respect to the values, the algorithm performs a check whether all value constraints hold and removes the state if a state does not satisfy all value constraints.
+
+The next step in the algorithm is to determine new derivatives based on the influences.
 \begin{algorithm}
-\For{asd}{
-\If{condition}{then-block}
+
+\For{quantity in quantities}{
+
+    \If{quantity has influences} {
+        \ForAll{influences on quantity}{
+            new\_state = pop(new\_states)\\
+            \ForAll{p}{
+               add new\_state with new possible value for quantity to new\_states
+            }
+        }
+
+    }
 }
 \caption{}
+\label{alg:propogating_influences}
 \end{algorithm}
 
 \section{State-graph}
