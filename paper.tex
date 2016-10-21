@@ -51,7 +51,9 @@
 
 \section{Algorithm}
 The goal of the algorithm is to construct a state graph based for a specific model and a given starting state. Constructing the state-graph is done iteratively as shown in Algorithm~\ref{alg:computing_state_graph}.
-\begin{algorithm}
+
+\vspace{12pt}
+\begin{algorithm}[H]
     result = \{"state": starting\_state, "children": [ ]\}
 
     processing\_list = [starting\_state]
@@ -70,12 +72,17 @@ The goal of the algorithm is to construct a state graph based for a specific mod
         add s as child to processing\_state
     }
 }
-\caption{Computing the state-graph based on given an starting state. It starts with a given starting state in the processing list, then it computes all the successors of this state and adds all the successors as children to state that is being processed, as well as adding these successors to the processing list, but only if a successor was not already processed.}
+\caption{Search in the state-graph}
 \label{alg:computing_state_graph}
 \end{algorithm}
+\vspace{12pt}
 
-The core functionality of constructing the state graph is encapsulated in finding all successive states for a given state. The first step in finding the successive states, is propagating over all quantities in the model and computing all possible combinations of new values based on the derivatives. The algorithm for doing this is shown in Algorithm~\ref{alg:propogating_values}.
-\begin{algorithm}
+Algorithm \ref{alg:computing_state_graph} computing the state-graph based on given an starting state. It starts with a given starting state in the processing list, then it computes all the successors of this state and adds all the successors as children to state that is being processed, as well as adding these successors to the processing list, but only if a successor was not already processed.
+
+The core functionality of constructing the state graph is encapsulated in finding all successive states for a given state. The first step in finding the successive states, is propagating over all quantities in the model and computing all possible combinations of new values based on the derivatives. The algorithm for doing this is shown in Algorithm \ref{alg:propogating_values}.
+
+\vspace{12pt}
+\begin{algorithm}[H]
 new\_states = [ empty\_state ]
 
     \For{quantity in quantities}{
@@ -88,14 +95,20 @@ new\_states = [ empty\_state ]
             }
         }
         }
-\caption{Propagate over all quantities and modify value based on the derivative. This is done by looping over all quantities in the model and computing all the possible values for a next state based on its current value and its derivative. For each possible next value we create a new state, thus possibly creating multiple states. Because, we can have new states created by value splits of previous quantities, we need to create new states for each state that was created previously}
+\caption{Values propagation}
 \label{alg:propogating_values}
 \end{algorithm}
+\vspace{12pt}
+
+Algorithm \ref{alg:propogating_values} propagate over all quantities and modify value based on the derivative. This is done by looping over all quantities in the model and computing all the possible values for a next state based on its current value and its derivative. For each possible next value we create a new state, thus possibly creating multiple states. Because, we can have new states created by value splits of previous quantities, we need to create new states for each state that was created previously.
+
 
 After computing all the possible successive states only with respect to the values, the algorithm performs a check whether all value constraints hold and removes the state if a state does not satisfy all value constraints.
 
-The next step in the algorithm is to determine new derivatives based on the influences, the algorithm for doing this is shown in Algorithm~\ref{alg:propogating_influences}.
-\begin{algorithm}
+The next step in the algorithm is to determine new derivatives based on the influences, the algorithm for doing this is shown in Algorithm \ref{alg:propogating_influences}.
+
+\vspace{12pt}
+\begin{algorithm}[H]
 
     \For{quantity in quantities}{
 
@@ -124,25 +137,39 @@ The next step in the algorithm is to determine new derivatives based on the infl
         }
 
     }
-\caption{Compute the new possible derivatives based on the influences. For all new states created from the previous step (value propagation), generate a list of possible derivatives. Then if both derivatives are possible this implies ambiguity and the 0 derivative is also a possibility. If the values of the influences in the previous state did not change this means that the derivative also does not change (w.r.t.\ the influences). Finally, for each state we create multiple new states based on the possible derivatives.}
+\caption{Influences propagation}
 \label{alg:propogating_influences}
 \end{algorithm}
-\section{Modelling choices and possible extensions}
-The algorithm implemented is very general and allows to model an arbitrarily complex model. Despite that we decided not to include certain features in our program.\newline
-First of all we chose not to implement all the inequality constraints. The main reason for not implementing this, is that all rules have to be coded for a general problem and thus coding them takes a discrete amount of time. Therefore we decided to implement only the most important ones, Such as the continuity constraints.\newline
+\vspace{12pt}
+
+Algorithm \ref{alg:propogating_influences} computes the new possible derivatives based on the influences. For all new states created from the previous step (value propagation), generate a list of possible derivatives. Then if both derivatives are possible this implies ambiguity and the 0 derivative is also a possibility. If the values of the influences in the previous state did not change this means that the derivative also does not change (w.r.t.\ the influences). Finally, for each state we create multiple new states based on the possible derivatives.
+
+\vspace{12pt}
+\begin{algorithm}[H]
+	TODO
+	\caption{Proportionals propagation}
+	\label{alg:propogating_proportionals}
+\end{algorithm}
+\vspace{12pt}
+
+The last step in the algorithm is computing the new derivatives based on the proportionates. Again we loop over all the quantities in the model. Then, for each quantity we check the derivatives of the quantities it is proportional to. If a quantity it is proportional to, has itself a quantity it is proportional to, we check these quantities first, this is implemented as a recursive algorithm. If the algorithm reaches a quantity that has not proportionates or influences, we base its derivative on an extrogeneous influence (random). On the other hand, if the algorithm reaches a quantity that only has influences, then we know that the derivative of this quantity is already determined in the previous step (propagating the influences) and thus we do not have to go deeper into recursion. In order to prevent the algorithm from entering an infinite loop (due to cycles in the influences graph), we keep track of the quantities we visited and stop visiting them again.
+
+When we found possible derivatives for each quantity based on its proportionates, we create new states for each new state that was created by the previous propagations (value, value constraints and influences). All the propagations steps together leave us with possible next states. Which are passed to the iterative algorithm for construction a state-graph (Algorithm~\ref{alg:computing_state_graph}).
+
+\subsection{Modelling choices and possible extensions}
+The algorithm implemented is very general and allows to model an arbitrarily complex model. Despite that we decided not to include certain features in our program.
+
+First of all we chose not to implement all the inequality constraints. The main reason for not implementing this, is that all rules have to be coded for a general problem and thus coding them takes a discrete amount of time. Therefore we decided to implement only the most important ones, Such as the continuity constraints.
+
 We then decided not to use higher order derivatives. However because of the generality of the algorithm, we cold easily have implemented them adding for each quantity $Q$ an another quantity $\partial Q$ and imposing constraints.
-\newline 
-Finally we only implemented random and static derivative for the inflow, but we could have easily implemented others exogenous behaviours.
+Finally we only implemented random and static derivative for the inflow, but we could have easily implemented others exogenous behaviors.
  
 
-The last step in the algorithm is computing the new derivatives based on the proportionalities. Again we loop over all the quantities in the model. Then, for each quantity we check the derivatives of the quantities it is proportional to. If a quantity it is proportional to, has itself a quantity it is proportional to, we check these quantities first, this is implemented as a recursive algorithm. If the algorithm reaches a quantity that has not proportionalities or influences, we base its derivative on an extrogeneous influence (random). On the other hand, if the algorithm reaches a quantity that only has influences, then we know that the derivative of this quantity is already determined in the previous step (propogating the influences) and thus we do not have to go deeper into recursion. In order to prevent the algorithm from entering an infinite loop (due to cycles in the influences graph), we keep track of the quantities we visited and stop visiting them again.
-
-When we found possible derivatives for each quantity based on its proportionalities, we create new states for each new state that was created by the previous propogations (value, value constraints and influences). All the propogations steps together leave us with possible next states. Which are passed to the iterative algorithm for construction a state-graph (Algorithm~\ref{alg:computing_state_graph}).
 
 \section{State-graph}
 The algorithm explained in the previous section generates a list of states, with children relations explaining the successor relations. Besides normal state transitions, we also have state transition due to extrogeneous influence. For this problem the only external influence we allow is changing the derivative of the Inflow randomly.
 
-In figure \ref{state-graph-base} shows all possible behaviors of the system described above. Blue nodes are final states, which are states without other reachable states. Other nodes are red and each arrow represents a transition.
+In figure \ref{state-graph-base} shows all possible behaviors of the system described above. Nodes are states and each arrow represents a transition to every reachable states.
 
 \begin{figure}\label{state-graph-base}
 \centering
