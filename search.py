@@ -90,9 +90,9 @@ def frog_prob():
 def extra_prob():
     inflow = Quantity("Inflow", [("Zero", False, 0), ("Plus", True, 1)])
     volume = Quantity("Tank", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
-    outflow = Quantity("Outflow", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
     height = Quantity("Height", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
     pressure = Quantity("Pressure", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
+    outflow = Quantity("Outflow", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
 
     volume.influence(inflow, positive=True)
     volume.influence(outflow, positive=False)
@@ -115,29 +115,24 @@ def extra_prob():
     volume.value_constraint(height, "Zero", "Zero")
     height.value_constraint(volume, "Zero", "Zero")
 
-    return inflow, volume, outflow, height, pressure
+    return inflow, volume, height, pressure, outflow
 
 if __name__ == "__main__":
-    inflow, tank, outflow, height, pressure = extra_prob()
-    prob1 = Problem([inflow, tank, height, pressure, outflow], fixed=False, logfile=True)
-    start_state = {"Inflow": ["Zero", 0], "Tank": ["Zero", 0], "Height": ["Zero", 0], "Pressure": ["Zero", 0], "Outflow": ["Zero", 0]}
+    inflow, tank, outflow = base_prob()
+    base_problem = Problem([inflow, tank, outflow], fixed=False, logfile=True)
+    base_start_state = {"Inflow": ["Zero", 0], "Tank": ["Zero", 0], "Outflow": ["Zero", 0]}
+    result_base_problem = Search.iterative(base_problem, base_start_state)
+    Plot.draw(result_base_problem, 'result_base_problem.png')
 
-    population, birth, death = frog_prob()
-    prob1 = Problem([population, birth, death], fixed=True, logfile=True)
-    start_state = {"Population": ["Small", 1], "Birth": ["Plus", 1], "Death": ["Plus", 1]}
-    # start_state = {"Inflow": ["Plus", 0], "Tank": ["Zero", 1], "Outflow": ["Zero", 1]}
-    # for i in prob1.succ(start_state):
-    #     print(i)
-    # for k, v in Search.iterative(prob1, start_state).items():
-    #     print(v['state'])
-    # for i in prob1.succ(start_state):
-    #     print(i)
-    result = Search.iterative(prob1, start_state)
-    print(len(result))
-    Plot.draw(result, 'result.png')
-    # results = prob1.succ({"Inflow": ("Zero", 1), "Tank": ("Zero", 0), "Outflow": ("Zero", 0)})
-    # for res in results:
-    #     print(res)
+    # inflow, tank, height, pressure, outflow = extra_prob()
+    # extra_problem = Problem([inflow, tank, height, pressure, outflow], fixed=False, logfile=True)
+    # extra_start_state = {"Inflow": ["Zero", 0], "Tank": ["Zero", 0], "Height": ["Zero", 0], "Pressure": ["Zero", 0], "Outflow": ["Zero", 0]}
+    # result_extra_problem = Search.iterative(extra_problem, extra_start_state)
+    # Plot.draw(result_extra_problem, 'result_extra_problem.png')
 
+    print(len(result_base_problem))
+    # print(len(result_extra_problem))
 
-
+    # population, birth, death = frog_prob()
+    # prob1 = Problem([population, birth, death], fixed=True, logfile=True)
+    # start_state = {"Population": ["Small", 1], "Birth": ["Plus", 1], "Death": ["Plus", 1]}
