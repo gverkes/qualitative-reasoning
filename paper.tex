@@ -127,6 +127,13 @@ The next step in the algorithm is to determine new derivatives based on the infl
 \caption{Compute the new possible derivatives based on the influences. For all new states created from the previous step (value propagation), generate a list of possible derivatives. Then if both derivatives are possible this implies ambiguity and the 0 derivative is also a possibility. If the values of the influences in the previous state did not change this means that the derivative also does not change (w.r.t.\ the influences). Finally, for each state we create multiple new states based on the possible derivatives.}
 \label{alg:propogating_influences}
 \end{algorithm}
+\section{Modelling choices and possible extensions}
+The algorithm implemented is very general and allows to model an arbitrarily complex model. Despite that we decided not to include certain features in our program.\newline
+First of all we chose not to implement all the inequality constraints. The main reason for not implementing this, is that all rules have to be coded for a general problem and thus coding them takes a discrete amount of time. Therefore we decided to implement only the most important ones, Such as the continuity constraints.\newline
+We then decided not to use higher order derivatives. However because of the generality of the algorithm, we cold easily have implemented them adding for each quantity $Q$ an another quantity $\partial Q$ and imposing constraints.
+\newline 
+Finally we only implemented random and static derivative for the inflow, but we could have easily implemented others exogenous behaviours.
+ 
 
 The last step in the algorithm is computing the new derivatives based on the proportionalities. Again we loop over all the quantities in the model. Then, for each quantity we check the derivatives of the quantities it is proportional to. If a quantity it is proportional to, has itself a quantity it is proportional to, we check these quantities first, this is implemented as a recursive algorithm. If the algorithm reaches a quantity that has not proportionalities or influences, we base its derivative on an extrogeneous influence (random). On the other hand, if the algorithm reaches a quantity that only has influences, then we know that the derivative of this quantity is already determined in the previous step (propogating the influences) and thus we do not have to go deeper into recursion. In order to prevent the algorithm from entering an infinite loop (due to cycles in the influences graph), we keep track of the quantities we visited and stop visiting them again.
 
