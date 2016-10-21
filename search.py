@@ -2,16 +2,17 @@ from quantity import Quantity
 from problem import Problem
 from plot import Plot
 
+
 class Search:
 
-    def __init__():
-        pass
+    # def __init__(self):
+    #    pass
 
-    def equal_states(state1, state2):
-        return (len(set(state1.items()) & set(state2.items())) == len(state1.items()))
-
-    def already_in_states(state1, state2):
-        return (len(set(state1.items()) & set(state2.items())) == len(state1.items))
+    # def equal_states(state1, state2):
+    #     return (len(set(state1.items()) & set(state2.items())) == len(state1.items()))
+    #
+    # def already_in_states(state1, state2):
+    #     return (len(set(state1.items()) & set(state2.items())) == len(state1.items))
 
     # @staticmethod
     # def hash_state(state):
@@ -41,8 +42,8 @@ class Search:
             processing_state = processing_list.pop(0)
             if problem.logfile!= None:
                 print("Popping the state "+problem.state2printstring(state)+" from the list of the states to explore")
-            succesors = problem.succ(processing_state)
-            for succ in succesors:
+            successors = problem.succ(processing_state)
+            for succ in successors:
                 hashed_state = problem.hash_state(succ)
                 result[problem.hash_state(processing_state)]['children'].add(hashed_state)
                 if hashed_state not in result:
@@ -57,37 +58,74 @@ class Search:
                         print("The list of the states to explore is empty: terminating the program")
         return result
 
-
-if __name__ == "__main__":
+def base_prob():
     inflow = Quantity("Inflow", [("Zero", False, 0), ("Plus", True, 1)])
-    tank = Quantity("Tank", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
-    height = Quantity("Height", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
-    pressure = Quantity("Pressure", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
+    volume = Quantity("Tank", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
     outflow = Quantity("Outflow", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
 
-    tank.influence(inflow, positive=True)
-    tank.influence(outflow, positive=False)
-    height.proportional(tank, positive=True)
-    pressure.proportional(height, positive=True)
+    volume.influence(inflow, positive=True)
+    volume.influence(outflow, positive=False)
+    outflow.proportional(volume, positive=True)
+
+    volume.value_constraint(outflow, "Max", "Max")
+    outflow.value_constraint(volume, "Max", "Max")
+    volume.value_constraint(outflow, "Zero", "Zero")
+    outflow.value_constraint(volume, "Zero", "Zero")
+
+    return inflow, volume, outflow
+
+def base_prob():
+    population = Quantity("Population", [("Zero", False, 0), ("Plus", True, 1)])
+    volume = Quantity("Tank", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
+    outflow = Quantity("Outflow", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
+
+    volume.influence(inflow, positive=True)
+    volume.influence(outflow, positive=False)
+    outflow.proportional(volume, positive=True)
+
+    volume.value_constraint(outflow, "Max", "Max")
+    outflow.value_constraint(volume, "Max", "Max")
+    volume.value_constraint(outflow, "Zero", "Zero")
+    outflow.value_constraint(volume, "Zero", "Zero")
+
+    return inflow, volume, outflow
+
+def extra_prob():
+    inflow = Quantity("Inflow", [("Zero", False, 0), ("Plus", True, 1)])
+    volume = Quantity("Tank", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
+    outflow = Quantity("Outflow", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
+    height = Quantity("Height", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
+    pressure = Quantity("Pressure", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
+
+    volume.influence(inflow, positive=True)
+    volume.influence(outflow, positive=False)
     outflow.proportional(pressure, positive=True)
+    pressure.proportional(height, positive=True)
+    height.proportional(volume, positive=True)
 
-    tank.value_constraint(outflow, "Max", "Max")
-    outflow.value_constraint(tank, "Max", "Max")
-    tank.value_constraint(height, "Max", "Max")
-    height.value_constraint(tank, "Max", "Max")
-    tank.value_constraint(pressure, "Max", "Max")
-    pressure.value_constraint(tank, "Max", "Max")
-    tank.value_constraint(outflow, "Zero", "Zero")
-    outflow.value_constraint(tank, "Zero", "Zero")
-    tank.value_constraint(height, "Zero", "Zero")
-    height.value_constraint(tank, "Zero", "Zero")
-    tank.value_constraint(pressure, "Zero", "Zero")
-    pressure.value_constraint(tank, "Zero", "Zero")
+    pressure.value_constraint(outflow, "Max", "Max")
+    outflow.value_constraint(pressure, "Max", "Max")
+    pressure.value_constraint(outflow, "Zero", "Zero")
+    outflow.value_constraint(pressure, "Zero", "Zero")
 
+    pressure.value_constraint(height, "Max", "Max")
+    height.value_constraint(pressure, "Max", "Max")
+    pressure.value_constraint(height, "Zero", "Zero")
+    height.value_constraint(pressure, "Zero", "Zero")
+
+    volume.value_constraint(height, "Max", "Max")
+    height.value_constraint(volume, "Max", "Max")
+    volume.value_constraint(height, "Zero", "Zero")
+    height.value_constraint(volume, "Zero", "Zero")
+
+    return inflow, volume, outflow, height, pressure
+
+if __name__ == "__main__":
+    inflow, tank, outflow, height, pressure = extra_prob()
     prob1 = Problem([inflow, tank, height, pressure, outflow], fixed=False, logfile=True)
 
-    start_state = {"Inflow": ["Plus", 0], "Tank": ["Zero", 1], "Outflow": ["Zero", 1]}
     start_state = {"Inflow": ["Zero", 0], "Tank": ["Zero", 0], "Height": ["Zero", 0], "Pressure": ["Zero", 0], "Outflow": ["Zero", 0]}
+    # start_state = {"Inflow": ["Plus", 0], "Tank": ["Zero", 1], "Outflow": ["Zero", 1]}
     # for i in prob1.succ(start_state):
     #     print(i)
     # for k, v in Search.iterative(prob1, start_state).items():
@@ -100,5 +138,6 @@ if __name__ == "__main__":
     # results = prob1.succ({"Inflow": ("Zero", 1), "Tank": ("Zero", 0), "Outflow": ("Zero", 0)})
     # for res in results:
     #     print(res)
+
 
 
