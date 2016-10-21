@@ -57,6 +57,15 @@
 \end{algorithm}
 
 \section{State-graph}
+The algorithm from the previous section generates a list of states which are unique values of Inflow, Tank and Ouflow and their first derivatives. Each state has a number of reachable states after an amount of time or a change in the state from an external influence. For this problem the only external influence we allow is changing the derivative of the Inflow (which is opening and closing the tap).
+
+In figure \ref{state-graph} shows all possible behaviors of the system described above. Blue nodes are final states, which are states without other reachable states. Other nodes are red and each arrow represents a transition.
+
+\begin{figure}[H]\label{state-graph}
+\centering
+\includegraphics[width=\textwidth, angle=90]{result.png}
+\caption{Plot of the state-graph}
+\end{figure}
 
 \section{Extra Problem}
 
