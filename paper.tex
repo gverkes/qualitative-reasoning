@@ -49,6 +49,7 @@
 \caption{Drawings of the causal model active for the problem}
 \end{figure}
 
+\newpage
 \section{Algorithm}
 The goal of the algorithm is to construct a state graph based for a specific model and a given starting state. We decided only to model the states that are reachable from the starting state. The reason for doing so is that we only want physically plausible states. That is we don't want disconnected states or states that cannot be reached by the system.
 
@@ -166,17 +167,15 @@ First of all we chose not to implement all the inequality constraints. The main 
 We then decided not to use higher order derivatives. However because of the generality of the algorithm, we cold easily have implemented them adding for each quantity $Q$ an another quantity $\partial Q$ and imposing constraints.
 Finally we only implemented random and static derivative for the inflow, but we could have easily implemented others exogenous behaviors.
  
-
-
 \section{State-graph}
 The algorithm explained in the previous section generates a list of states, with children relations explaining the successor relations. Besides normal state transitions, we also have state transition due to extrogeneous influence. For this problem the only external influence we allow is changing the derivative of the Inflow randomly.
 
-In figure \ref{state-graph-base} shows all possible behaviors of the system described above. Nodes are states and each arrow represents a transition to every reachable states.
+In figure \ref{state-graph-base} shows all possible behaviors of the system described above. Nodes are states and each arrow represents a transition to every reachable states. Nodes are labeled with the description of the current value of each quantity and its derivative.
 
-\begin{figure}\label{state-graph-base}
+\begin{figure}[H]\label{state-graph-base}
 \centering
-\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{result_base_problem.png}
-\caption{Plot of the state-graph of the base problem}
+\includegraphics[width=\textwidth,height=7.7in,keepaspectratio]{result_base_problem.png}
+\caption{Plot of the state-graph for the base problem}
 \end{figure}
 
 
@@ -196,7 +195,6 @@ In figure \ref{state-graph-base} shows all possible behaviors of the system desc
 \end{itemize}
 
 \item \textbf{Dependencies:}
-
 \begin{itemize}
 \item I+(Inflow, Volume): the amount of inflow increases the volume
 \item I-(Outflow, Volume): the amount of outflow decreases the volume
@@ -214,15 +212,15 @@ In figure \ref{state-graph-base} shows all possible behaviors of the system desc
 
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.5]{problem_extra.eps}
+\includegraphics[scale=0.4]{problem_extra.eps}
 \caption{Drawings of the causal model active for the extra problem}
 \end{figure}
 
 
-\begin{figure}\label{state-graph-extra}
+\begin{figure}[H]\label{state-graph-extra}
 	\centering
-	\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{result_extra_problem.png}
-	\caption{Plot of the state-graph of the extra problem}
+	\includegraphics[width=\textwidth,height=9.5in,keepaspectratio]{result_extra_problem.png}
+	\caption{Plot of the state-graph for the extra problem}
 \end{figure}
 
 \end{document}
