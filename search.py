@@ -61,14 +61,16 @@ if __name__ == "__main__":
     tank.value_constraint(outflow, "Zero", "Zero")
     outflow.value_constraint(tank, "Zero", "Zero")
 
-    prob1 = Problem([inflow, tank, outflow], fixed=True)
+    prob1 = Problem([inflow, tank, outflow], fixed=False)
 
-    start_state = {"Inflow": ["Zero", 1], "Tank": ["Zero", 0], "Outflow": ["Zero", 0]}
-    # start_state = {"Inflow": ["Plus", 1], "Tank": ["Plus", -1], "Outflow": ["Plus", -1]}
+    start_state = {"Inflow": ["Zero", 0], "Tank": ["Zero", 0], "Outflow": ["Zero", 0]}
+    start_state = {"Inflow": ["Plus", 0], "Tank": ["Zero", 1], "Outflow": ["Zero", 1]}
     # for i in prob1.succ(start_state):
     #     print(i)
     # for k, v in Search.iterative(prob1, start_state).items():
     #     print(v['state'])
+    # for i in prob1.succ(start_state):
+    #     print(i)
     print(len(Search.iterative(prob1, start_state)))
     Plot.draw(Search.iterative(prob1, start_state), 'result.png')
     # results = prob1.succ({"Inflow": ("Zero", 1), "Tank": ("Zero", 0), "Outflow": ("Zero", 0)})

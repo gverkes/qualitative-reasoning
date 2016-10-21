@@ -33,6 +33,14 @@ class Quantity:
     def value2index(self, value):
         return self.values.index(value)
 
+    def isMax(self, value):
+        value_idx = self.value2index(value)
+        return (value_idx == len(self.values)-1 and not self.intervals[value_idx])
+
+    def isMin(self, value):
+        value_idx = self.value2index(value)
+        return (value_idx == 0 and not self.intervals[value_idx])
+
     def next_value(self, value, derivative):
         result = []
         index = self.value2index(value)

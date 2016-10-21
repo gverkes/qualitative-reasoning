@@ -13,7 +13,10 @@ class Problem:
         result_hash = ''
 
         for key in sorted_keys:
-            result_hash += key + str(state[key]) + '\n'
+            result_hash += key + ": "
+            for q in state[key][:-1]:
+                result_hash += str(q) + ", "
+            result_hash += str(state[key][-1]) + '\n'
 
         return result_hash
 
@@ -41,9 +44,6 @@ class Problem:
                 vc_new_states.append(s)
         new_states = vc_new_states
 
-        # new_states = [new_states[1]]
-        # print(new_states)
-
         # Influence propogations, i.e. computing new derivatives based on influences
         for quantity in self.quantities:
             if quantity.hasInfluences():
@@ -56,6 +56,7 @@ class Problem:
                         quantity_new_states.append(value_new_dict)
                 new_states = quantity_new_states
 
+
         final_new_states = []
         for new_state in new_states:
             final_new_states += self.propagate_proportionals(state, new_state)
@@ -64,7 +65,9 @@ class Problem:
 
     def propagate_influences(self, quantity, old_state, new_state):
         new_der = set()
+        change = False
         for infl_quantity, infl_positive in quantity.influences:
+            _, der = old_state[infl_quantity.name]
             value, _ = new_state[infl_quantity.name]
             value_idx = infl_quantity.value2index(value)
             sign = infl_quantity.signs[value_idx]
@@ -72,19 +75,21 @@ class Problem:
             if sign != 0:
                 if infl_positive:
                     new_der.add(sign)
-                    # new_der.add(min(1, max(-1, old_state[quantity.name][1] + sign)))
-                else: #lif not old_state[quantity.name][1] == sign:
+                else:
                     new_der.add(-sign)
-                    # new_der.add(min(1, max(-1, old_state[quantity.name][1] - sign)))
-            #     print(new_der)
-            # else:
-            #     new_der.add(old_state[quantity.name][1])
-            #     print(new_der)
+            if (der != 0):
+                change = True
 
-        if -1 in new_der and 1 in new_der:
+        if not change:
+            new_der = set([old_state[quantity.name][1]])
+        elif -1 in new_der and 1 in new_der:
             new_der.add(0)
         elif not new_der:
             new_der.add(0)
+
+        # print(new_der)
+        # print(old_state[quantity.name][1])
+
         new_der = new_der & set([old_state[quantity.name][1], min(1, max(-1, old_state[quantity.name][1] + 1)), min(1, max(-1, old_state[quantity.name][1] - 1))])
 
         return new_der
@@ -104,13 +109,15 @@ class Problem:
                 new_dict = new_states.pop(0)
                 for deri in visited_quantities[quantity.name]:
                     deri_new_dict = deepcopy(new_dict)
-                    value_idx = quantity.value2index(deri_new_dict[quantity.name][0])
-                    sign = quantity.signs[value_idx]
+                    new_value = deri_new_dict[quantity.name][0]
+                    value_idx = quantity.value2index(new_value)
                     interval = quantity.intervals[value_idx]
                     # print(deri_new_dict[quantity.name][0] != old_state[quantity.name][0])
                     # print(interval)
                     # print(deri != old_state[quantity.name][1])
-                    if (not (deri < 0 and sign == 0) and not (deri_new_dict[quantity.name][0] != old_state[quantity.name][0] and interval and deri != old_state[quantity.name][1])):
+                    if (not ((deri < 0 and quantity.isMin(new_value)) or (deri > 0 and quantity.isMax(new_value))) \
+                            and not (deri_new_dict[quantity.name][0] != old_state[quantity.name][0] \
+                                     and interval and deri != old_state[quantity.name][1])):
                         deri_new_dict[quantity.name][1] = deri
                         quantity_new_states.append(deri_new_dict)
             new_states = quantity_new_states
@@ -139,7 +146,7 @@ class Problem:
 
             for prop_quantity, prop_positive in quantity.proportionals:
                 if prop_quantity.name not in visited_quantities:
-                    visited_quantities, derivatives = self.propagate_proportional(prop_quantity, visited_quantities, derivatives, state)
+                    visited_quantities, derivatives = self.propagate_proportional(prop_quantity, visited_quantities, derivatives, old_state, new_state)
 
                 derivatives |= set([(1 if prop_positive else -1)*i for i in visited_quantities[prop_quantity.name]])
                 if -1 in derivatives and 1 in derivatives:
