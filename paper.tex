@@ -50,7 +50,9 @@
 \end{figure}
 
 \section{Algorithm}
-The goal of the algorithm is to construct a state graph based for a specific model and a given starting state. Constructing the state-graph is done iteratively as shown in Algorithm~\ref{alg:computing_state_graph}.
+The goal of the algorithm is to construct a state graph based for a specific model and a given starting state. We decided only to model the states that are reachable from the starting state. The reason for doing so is that we only want physically plausible states. That is we don't want disconnected states or states that cannot be reached by the system.
+
+Constructing the state-graph is done iteratively as shown in Algorithm~\ref{alg:computing_state_graph}.
 
 \vspace{12pt}
 \begin{algorithm}[H]
