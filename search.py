@@ -78,8 +78,8 @@ def extra_prob():
     inflow = Quantity("Inflow", [("Zero", False, 0), ("Plus", True, 1)])
     volume = Quantity("Tank", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
     outflow = Quantity("Outflow", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
-    height = Quantity("height", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
-    pressure = Quantity("pressure", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
+    height = Quantity("Height", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
+    pressure = Quantity("Pressure", [("Zero", False, 0), ("Plus", True, 1), ("Max", False, 1)])
 
     volume.influence(inflow, positive=True)
     volume.influence(outflow, positive=False)
@@ -105,10 +105,13 @@ def extra_prob():
     return inflow, volume, outflow, height, pressure
 
 if __name__ == "__main__":
-    inflow, tank, outflow = base_prob()
-    prob1 = Problem([inflow, tank, outflow], fixed=False, logfile=True)
+    inflow, tank, outflow, height, pressure = extra_prob()
 
-    start_state = {"Inflow": ["Zero", 1], "Tank": ["Zero", 0], "Outflow": ["Zero", 0]}
+
+    #inflow, tank, outflow = base_prob()
+    prob1 = Problem([inflow, tank, outflow, height, pressure], fixed=False, logfile=True)
+
+    start_state = {"Inflow": ["Zero", 1], "Tank": ["Zero", 0], "Outflow": ["Zero", 0], "Height": ["Zero", 0], "Pressure": ["Zero", 0]}
     # start_state = {"Inflow": ["Plus", 1], "Tank": ["Plus", -1], "Outflow": ["Plus", -1]}
     # for i in prob1.succ(start_state):
     #     print(i)
@@ -119,6 +122,10 @@ if __name__ == "__main__":
     # results = prob1.succ({"Inflow": ("Zero", 1), "Tank": ("Zero", 0), "Outflow": ("Zero", 0)})
     # for res in results:
     #     print(res)
+
+
+
+
 
 
 

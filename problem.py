@@ -26,7 +26,7 @@ class Problem:
 
         # Evolving, i.e. changing values based on derivatives
         if self.logfile!=None:
-            print("--->Expanding the node ("+self.state2printstring(state)+") to determine its successors:")  
+            print("--->Expanding the node "+self.state2printstring(state)+" to determine its successors:")
         for quantity in self.quantities:
             value, derivative = state[quantity.name]
             quantity_new_states = []
@@ -43,7 +43,7 @@ class Problem:
                     
         
         if self.logfile!=None:
-            print("\t\t for each quantity we determine the possible values in which it can trasition (using its actual value and its derivative):")    
+            print("\t\t for each quantity we determine the possible values which it can trasit in (using its actual value and its derivative):")
         if self.logfile!=None:
             if new_states:   
                 
