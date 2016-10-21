@@ -118,6 +118,33 @@ def extra_prob():
     return inflow, volume, height, pressure, outflow
 
 if __name__ == "__main__":
+<<<<<<< HEAD
+    inflow, tank, outflow, height, pressure = extra_prob()
+
+    #inflow, tank, outflow = base_prob()
+    prob1 = Problem([inflow, tank, outflow, height, pressure], fixed=False, logfile=True)
+
+    start_state = {"Inflow": ["Zero", 1], "Tank": ["Zero", 0], "Outflow": ["Zero", 0], "Height": ["Zero", 0], "Pressure": ["Zero", 0]}
+    # start_state = {"Inflow": ["Plus", 1], "Tank": ["Plus", -1], "Outflow": ["Plus", -1]}
+
+    # for i in prob1.succ(start_state):
+    #     print(i)
+    # for k, v in Search.iterative(prob1, start_state).items():
+    #     print(v['state'])
+    # for i in prob1.succ(start_state):
+    #     print(i)
+    result = Search.iterative(prob1, start_state)
+    print(len(result))
+    #Plot.draw(result, 'result.png')
+    # results = prob1.succ({"Inflow": ("Zero", 1), "Tank": ("Zero", 0), "Outflow": ("Zero", 0)})
+    # for res in results:
+    #     print(res)
+
+
+
+
+
+=======
     inflow, tank, outflow = base_prob()
     base_problem = Problem([inflow, tank, outflow], fixed=False, logfile=True)
     base_start_state = {"Inflow": ["Zero", 0], "Tank": ["Zero", 0], "Outflow": ["Zero", 0]}
@@ -136,5 +163,6 @@ if __name__ == "__main__":
     # population, birth, death = frog_prob()
     # prob1 = Problem([population, birth, death], fixed=True, logfile=True)
     # start_state = {"Population": ["Small", 1], "Birth": ["Plus", 1], "Death": ["Plus", 1]}
+>>>>>>> 03b8defbea0b5604eef48a89f9ddc38da8609bd1
 
 

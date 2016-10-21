@@ -197,7 +197,7 @@ class Problem:
                         quantity_new_states.append(deri_new_dict)
                     elif (deri_new_dict[quantity.name][0] != old_state[quantity.name][0] and interval and deri != old_state[quantity.name][1]) and self.logfile!=None:
                         deri_new_dict[quantity.name][1] = deri
-                        print("\t\t\t\t discarding partial state "+self.state2printstring(deri_new_dict)+" because it violates continuity constraints")
+                        print("\t\t\t\t discarding partial state "+self.state2printstring(deri_new_dict)+" because it violates continuity constraints and epsilon ordering")
             new_states = quantity_new_states
 
         if self.logfile!=None:
