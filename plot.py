@@ -1,9 +1,7 @@
 
 import matplotlib.pyplot as plt
-import networkx as nx
-import pygraphviz as pgv
-
-
+#import networkx as nx
+#import pygraphviz as pgv
 
 class Plot:
 

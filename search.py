@@ -136,3 +136,5 @@ if __name__ == "__main__":
     # population, birth, death = frog_prob()
     # prob1 = Problem([population, birth, death], fixed=True, logfile=True)
     # start_state = {"Population": ["Small", 1], "Birth": ["Plus", 1], "Death": ["Plus", 1]}
+
+
