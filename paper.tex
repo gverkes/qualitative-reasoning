@@ -70,7 +70,7 @@ The goal of the algorithm is to construct a state graph based for a specific mod
         add s as child to processing\_state
     }
 }
-\caption{Computing the state-graph based on given an starting state. It starts with a given starting state in the processing list, then it computes all the successors of this state and adds all the succesors as children to state that is being processed, as well as adding these succesors to the processing list, but only if a successor was not already processed.}
+\caption{Computing the state-graph based on given an starting state. It starts with a given starting state in the processing list, then it computes all the successors of this state and adds all the successors as children to state that is being processed, as well as adding these successors to the processing list, but only if a successor was not already processed.}
 \label{alg:computing_state_graph}
 \end{algorithm}
 
@@ -94,22 +94,37 @@ new\_states = [ empty\_state ]
 
 After computing all the possible successive states only with respect to the values, the algorithm performs a check whether all value constraints hold and removes the state if a state does not satisfy all value constraints.
 
-The next step in the algorithm is to determine new derivatives based on the influences.
+The next step in the algorithm is to determine new derivatives based on the influences, the algorithm for doing this is shown in Algorithm~\ref{alg:propogating_influences}.
 \begin{algorithm}
 
-\For{quantity in quantities}{
+    \For{quantity in quantities}{
 
-    \If{quantity has influences} {
-        \ForAll{influences on quantity}{
+        \ForAll{new\_states}{
+
             new\_state = pop(new\_states)\\
-            \ForAll{p}{
-               add new\_state with new possible value for quantity to new\_states
+
+            possible\_derivatives = [ ]
+
+            \ForAll{influences on quantity}{
+                \If{influence is not zero}{
+                    add corresponding derivative to possible\_derivative based on new\_state
+                }
             }
+            \If{both positive and negative derivative are possible} {
+                add 0 derivative to possible\_derivative
+            }
+            \If{values of influences did not change w.r.t.\ previous state} {
+                set possible\_derivative only to old derivative
+            }
+
+            \ForAll{possible\_derivatives}{
+                add new state to new\_states with new possible derivative
+            }
+
         }
 
     }
-}
-\caption{}
+\caption{Compute the new possible derivatives based on the influences. For all new states created from the previous step (value propagation), generate a list of possible derivatives. Then if both derivatives are possible this implies ambiguity and the 0 derivative is also a possibility. If the values of the influences in the previous state did not change this means that the derivative also does not change (w.r.t.\ the influences). Finally, for each state we create multiple new states based on the possible derivatives.}
 \label{alg:propogating_influences}
 \end{algorithm}
 \section{Modelling choices and possible extensions}
@@ -120,14 +135,18 @@ We then decided not to use higher order derivatives. However because of the gene
 Finally we only implemented random and static derivative for the inflow, but we could have easily implemented others exogenous behaviours.
  
 
+The last step in the algorithm is computing the new derivatives based on the proportionalities. Again we loop over all the quantities in the model. Then, for each quantity we check the derivatives of the quantities it is proportional to. If a quantity it is proportional to, has itself a quantity it is proportional to, we check these quantities first, this is implemented as a recursive algorithm. If the algorithm reaches a quantity that has not proportionalities or influences, we base its derivative on an extrogeneous influence (random). On the other hand, if the algorithm reaches a quantity that only has influences, then we know that the derivative of this quantity is already determined in the previous step (propogating the influences) and thus we do not have to go deeper into recursion. In order to prevent the algorithm from entering an infinite loop (due to cycles in the influences graph), we keep track of the quantities we visited and stop visiting them again.
+
+When we found possible derivatives for each quantity based on its proportionalities, we create new states for each new state that was created by the previous propogations (value, value constraints and influences). All the propogations steps together leave us with possible next states. Which are passed to the iterative algorithm for construction a state-graph (Algorithm~\ref{alg:computing_state_graph}).
+
 \section{State-graph}
-The algorithm from the previous section generates a list of states which are unique values of Inflow, Tank and Ouflow and their first derivatives. Each state has a number of reachable states after an amount of time or a change in the state from an external influence. For this problem the only external influence we allow is changing the derivative of the Inflow (which is opening and closing the tap).
+The algorithm explained in the previous section generates a list of states, with children relations explaining the successor relations. Besides normal state transitions, we also have state transition due to extrogeneous influence. For this problem the only external influence we allow is changing the derivative of the Inflow randomly.
 
 In figure \ref{state-graph} shows all possible behaviors of the system described above. Blue nodes are final states, which are states without other reachable states. Other nodes are red and each arrow represents a transition.
 
-\begin{figure}[H]\label{state-graph}
+\begin{figure}\label{state-graph}
 \centering
-\includegraphics[width=\textwidth]{result.png}
+\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{result.png}
 \caption{Plot of the state-graph}
 \end{figure}
 
