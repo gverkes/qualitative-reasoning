@@ -118,12 +118,12 @@ def extra_prob():
     return inflow, volume, outflow, height, pressure
 
 if __name__ == "__main__":
-    #inflow, tank, outflow, height, pressure = extra_prob()
+    inflow, tank, outflow, height, pressure = extra_prob()
 
-    inflow, tank, outflow = base_prob()
-    prob1 = Problem([inflow, tank, outflow], fixed=False, logfile=True)
+    #inflow, tank, outflow = base_prob()
+    prob1 = Problem([inflow, tank, outflow, height, pressure], fixed=False, logfile=True)
 
-    start_state = {"Inflow": ["Zero", 1], "Tank": ["Zero", 0], "Outflow": ["Zero", 0]}
+    start_state = {"Inflow": ["Zero", 1], "Tank": ["Zero", 0], "Outflow": ["Zero", 0], "Height": ["Zero", 0], "Pressure": ["Zero", 0]}
     # start_state = {"Inflow": ["Plus", 1], "Tank": ["Plus", -1], "Outflow": ["Plus", -1]}
 
     # for i in prob1.succ(start_state):
